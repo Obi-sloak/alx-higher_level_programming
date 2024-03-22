@@ -1,20 +1,58 @@
 #!/usr/bin/python3
-""" prints the State object with the name passed as argument from the database
+
 """
+Connects to MySQL, adds the State object "Louisiana" to
+the specified database.
+
+Returns:
+    None. Prints the id of the newly created State object
+    to the console.
+"""
+
 import sys
-from model_state import Base, State
-from sqlalchemy import (create_engine)
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from model_state import Base, State
+
+
+def add_state(username, password, database):
+    """
+    Connects to MySQL, adds the State object "Louisiana" to
+    the specified database.
+
+    Args:
+        username (str): MySQL username.
+        password (str): MySQL password.
+        database (str): Name of the MySQL database containing
+        the State objects.
+
+    Returns:
+        None. Prints the id of the newly created State object
+        to the console.
+    """
+
+    engine = create_engine(
+        f'mysql://{username}:{password}@localhost:3306/{database}')
+
+    Base.metadata.bind = engine
+
+    DBSession = sessionmaker(bind=engine)
+    session = DBSession()
+
+    new_state = State(name="Louisiana")
+
+    session.add(new_state)
+    session.commit()
+
+    print(new_state.id)
+
+    session.close()
 
 
 if __name__ == "__main__":
-    engine = create_engine('mysql+mysqldb://{}:{}@localhost:3306/{}'
-                           .format(sys.argv[1], sys.argv[2], sys.argv[3]))
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    new_state = State(name='Louisiana')
-    session.add(new_state)
-    new_instance = session.query(State).filter_by(name='Louisiana').first()
-    print(new_instance.id)
-    session.commit()
+
+    username = sys.argv[1]
+    password = sys.argv[2]
+    database = sys.argv[3]
+
+    add_state(username, password, database)
